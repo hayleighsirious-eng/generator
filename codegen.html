@@ -1,0 +1,478 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Velune — Code Generator (Private)</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/x-icon/jpeg" href="./assets/images/favicon-32x32.png">
+  <style>
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: #0F1F3D;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+    }
+
+    .wrap { max-width: 500px; width: 100%; }
+
+    .header { text-align: center; margin-bottom: 28px; }
+    .header h1 {
+      font-family: 'Playfair Display', serif;
+      color: #C9960C;
+      font-size: 1.6rem;
+      margin-bottom: 6px;
+    }
+    .header p { color: rgba(255,255,255,0.4); font-size: 0.82rem; }
+
+    .card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.1);
+      border-radius: 18px;
+      padding: 28px;
+      margin-bottom: 16px;
+    }
+
+    .form-group { margin-bottom: 18px; }
+    label {
+      display: block;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(255,255,255,0.5);
+      margin-bottom: 8px;
+    }
+    input, select {
+      width: 100%;
+      padding: 12px 14px;
+      background: rgba(255,255,255,0.07);
+      border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      color: #fff;
+      font-size: 0.92rem;
+      font-family: 'DM Sans', sans-serif;
+      outline: none;
+      transition: all 0.2s;
+    }
+    input:focus, select:focus {
+      border-color: #C9960C;
+      background: rgba(255,255,255,0.1);
+    }
+    input::placeholder { color: rgba(255,255,255,0.25); }
+    select option { background: #0F1F3D; color: #fff; }
+
+    .btn-generate {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, #C9960C, #E8B422);
+      color: #0F1F3D;
+      border: none;
+      border-radius: 12px;
+      font-size: 1rem;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      letter-spacing: 0.03em;
+      transition: all 0.2s;
+    }
+    .btn-generate:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(201,150,12,0.4); }
+
+    /* Result */
+    .result-card {
+      background: rgba(201,150,12,0.08);
+      border: 1.5px solid rgba(201,150,12,0.3);
+      border-radius: 14px;
+      padding: 22px;
+      display: none;
+      margin-top: 16px;
+    }
+    .result-label {
+      font-size: 0.72rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: rgba(201,150,12,0.7);
+      margin-bottom: 10px;
+    }
+    .result-code {
+      font-family: monospace;
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: #E8B422;
+      letter-spacing: 0.12em;
+      word-break: break-all;
+      margin-bottom: 16px;
+      text-align: center;
+      padding: 14px;
+      background: rgba(0,0,0,0.2);
+      border-radius: 10px;
+    }
+
+    .copy-btn {
+      width: 100%;
+      padding: 11px;
+      background: rgba(201,150,12,0.15);
+      border: 1px solid rgba(201,150,12,0.3);
+      color: #E8B422;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-bottom: 10px;
+    }
+    .copy-btn:hover { background: rgba(201,150,12,0.25); }
+    .copy-btn.copied { background: rgba(12,122,74,0.2); border-color: rgba(12,122,74,0.4); color: #0C7A4A; }
+
+    .wa-send-btn {
+      width: 100%;
+      padding: 11px;
+      background: linear-gradient(135deg, #25D366, #20bc5a);
+      border: none;
+      color: #fff;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      text-decoration: none;
+    }
+
+    .result-meta {
+      font-size: 0.78rem;
+      color: rgba(255,255,255,0.35);
+      margin-top: 12px;
+      text-align: center;
+      line-height: 1.6;
+    }
+
+    /* History */
+    .history-card {
+      background: rgba(255,255,255,0.03);
+      border: 1px solid rgba(255,255,255,0.08);
+      border-radius: 14px;
+      overflow: hidden;
+    }
+    .history-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 14px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.06);
+    }
+    .history-title {
+      font-size: 0.8rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: rgba(255,255,255,0.4);
+    }
+    .clear-btn {
+      background: none;
+      border: none;
+      color: rgba(192,57,43,0.7);
+      font-size: 0.75rem;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .clear-btn:hover { color: #C0392B; }
+    .history-empty {
+      padding: 24px;
+      text-align: center;
+      color: rgba(255,255,255,0.2);
+      font-size: 0.82rem;
+    }
+    .history-item {
+      padding: 12px 18px;
+      border-bottom: 1px solid rgba(255,255,255,0.05);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-item-code {
+      font-family: monospace;
+      font-size: 0.82rem;
+      color: #E8B422;
+      font-weight: 700;
+    }
+    .history-item-meta {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.3);
+      margin-top: 2px;
+    }
+    .history-copy {
+      background: none;
+      border: 1px solid rgba(255,255,255,0.1);
+      color: rgba(255,255,255,0.4);
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      flex-shrink: 0;
+    }
+    .history-copy:hover { color: #E8B422; border-color: rgba(201,150,12,0.4); }
+
+    /* Password gate */
+    .gate {
+      text-align: center;
+    }
+    .gate h2 {
+      font-family: 'Playfair Display', serif;
+      color: #C9960C;
+      font-size: 1.3rem;
+      margin-bottom: 8px;
+    }
+    .gate p { color: rgba(255,255,255,0.4); font-size: 0.83rem; margin-bottom: 20px; }
+    .gate input {
+      text-align: center;
+      letter-spacing: 0.2em;
+      font-size: 1.1rem;
+      margin-bottom: 14px;
+    }
+    .gate-btn {
+      width: 100%;
+      padding: 13px;
+      background: linear-gradient(135deg, #C9960C, #E8B422);
+      color: #0F1F3D;
+      border: none;
+      border-radius: 12px;
+      font-size: 0.92rem;
+      font-weight: 800;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+    }
+    .gate-error {
+      color: #e74c3c;
+      font-size: 0.8rem;
+      margin-top: 10px;
+      display: none;
+    }
+
+    .main-content { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="wrap">
+
+  <!-- ── Password Gate (protects this page) ── -->
+  <div id="gateDiv" class="card gate">
+    <h2>🔐 Admin Only</h2>
+    <p>This page is for generating activation codes.<br>Enter your admin password to continue.</p>
+    <input type="password" id="gatePassword" placeholder="••••••••" onkeydown="if(event.key==='Enter')checkGate()"/>
+    <button class="gate-btn" onclick="checkGate()">Enter</button>
+    <div class="gate-error" id="gateError">Wrong password. Try again.</div>
+  </div>
+
+  <!-- ── Main content (shown after password) ── -->
+  <div class="main-content" id="mainContent">
+
+    <div class="header">
+      <h1>Velune Code Generator</h1>
+      <p>Private · Only you should have this page</p>
+    </div>
+
+    <div class="card">
+      <div class="form-group">
+        <label>Customer's Supabase User ID</label>
+        <input
+          type="text"
+          id="userId"
+          placeholder="e.g. a1b2c3d4-e5f6-7890-abcd-ef1234567890"
+        />
+        <div style="font-size:0.72rem;color:rgba(255,255,255,0.3);margin-top:6px">
+          Find this in Supabase → Authentication → Users → click the user
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label>Issue Date</label>
+        <input type="date" id="issueDate"/>
+      </div>
+
+      <button class="btn-generate" onclick="generateCode()">
+        Generate Activation Code
+      </button>
+
+      <!-- Result -->
+      <div class="result-card" id="resultCard">
+        <div class="result-label">Activation Code — send this to the customer</div>
+        <div class="result-code" id="resultCode"></div>
+        <button class="copy-btn" id="copyBtn" onclick="copyCode()">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+          Copy Code
+        </button>
+        <a class="wa-send-btn" id="waSendBtn" href="#" target="_blank">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>
+          Send via WhatsApp
+        </a>
+        <div class="result-meta" id="resultMeta"></div>
+      </div>
+    </div>
+
+    <!-- History -->
+    <div class="history-card">
+      <div class="history-header">
+        <span class="history-title">Recently Generated Codes</span>
+        <button class="clear-btn" onclick="clearHistory()">Clear history</button>
+      </div>
+      <div id="historyList"></div>
+    </div>
+
+  </div>
+</div>
+
+<script>
+  // ── CHANGE THESE TWO VALUES ──────────────────────────────────
+  const GATE_PASSWORD = 'Olawale@31';  // Your private password for this page
+  const LICENSE_SALT  = 'velune2024xk9mq';    // Must match exactly what's in supabase.js
+  const YOUR_WHATSAPP = '2348158167305';       // Your WhatsApp number (no +)
+  // ─────────────────────────────────────────────────────────────
+
+  // Set today's date as default
+  document.getElementById('issueDate').value = new Date().toISOString().split('T')[0];
+
+  // ── Password gate ────────────────────────────────────────────
+  function checkGate() {
+    const pw = document.getElementById('gatePassword').value;
+    if (pw === GATE_PASSWORD) {
+      document.getElementById('gateDiv').style.display     = 'none';
+      document.getElementById('mainContent').style.display = 'block';
+      loadHistory();
+    } else {
+      document.getElementById('gateError').style.display = 'block';
+      document.getElementById('gatePassword').value = '';
+    }
+  }
+
+  // ── Hash (same as in supabase.js) ────────────────────────────
+  async function makeHash(str) {
+    const buf  = new TextEncoder().encode(str);
+    const hash = await crypto.subtle.digest('SHA-256', buf);
+    const arr  = Array.from(new Uint8Array(hash));
+    const hex  = arr.map(b => b.toString(16).padStart(2,'0')).join('');
+    return hex.substring(0, 8).toUpperCase();
+  }
+
+  // ── Generate ─────────────────────────────────────────────────
+  let lastGeneratedCode = '';
+
+  async function generateCode() {
+    const userId    = document.getElementById('userId').value.trim();
+    const issueDate = document.getElementById('issueDate').value;
+
+    if (!userId) {
+      alert('Please enter the customer\'s User ID.');
+      return;
+    }
+    if (!issueDate) {
+      alert('Please select an issue date.');
+      return;
+    }
+
+    // Convert date to YYYYMMDD
+    const datePart = issueDate.replace(/-/g, '');
+
+    // Generate hash
+    const hashPart = await makeHash(userId + datePart + LICENSE_SALT);
+
+    // Build code
+    const code = `VLN-${hashPart}-${datePart}`;
+    lastGeneratedCode = code;
+
+    // Show result
+    document.getElementById('resultCode').textContent = code;
+    document.getElementById('resultCard').style.display = 'block';
+
+    const expiry = new Date(new Date(issueDate).getTime() + 7 * 86400000);
+    document.getElementById('resultMeta').innerHTML =
+      `Valid for <strong style="color:#E8B422">30 days</strong> of access · ` +
+      `Code expires ${expiry.toDateString()} (7-day redemption window)`;
+
+    // WhatsApp send button
+    const msg = encodeURIComponent(
+      `Hello! Here is your Velune activation code:\n\n*${code}*\n\nEnter this on the activation page to unlock your dashboard for 30 days.\n\nThank you for subscribing! 🙏`
+    );
+    document.getElementById('waSendBtn').href = `https://wa.me/${YOUR_WHATSAPP}?text=${msg}`;
+
+    // Save to history
+    saveToHistory(code, userId, issueDate);
+    loadHistory();
+  }
+
+  // ── Copy ──────────────────────────────────────────────────────
+  function copyCode() {
+    navigator.clipboard.writeText(lastGeneratedCode).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.classList.add('copied');
+      btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg> Copied!`;
+      setTimeout(() => {
+        btn.classList.remove('copied');
+        btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg> Copy Code`;
+      }, 2500);
+    });
+  }
+
+  function copyHistoryCode(code) {
+    navigator.clipboard.writeText(code).then(() => showFlash('Copied!'));
+  }
+
+  function showFlash(msg) {
+    const el = document.createElement('div');
+    el.style.cssText = 'position:fixed;bottom:20px;right:20px;background:#0C7A4A;color:white;padding:10px 18px;border-radius:10px;font-size:0.85rem;font-weight:700;z-index:9999;font-family:DM Sans,sans-serif';
+    el.textContent = msg;
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 2000);
+  }
+
+  // ── History (localStorage) ────────────────────────────────────
+  function saveToHistory(code, userId, date) {
+    const history = JSON.parse(localStorage.getItem('velune_codegen_history') || '[]');
+    history.unshift({ code, userId: userId.substring(0, 8) + '...', date, ts: Date.now() });
+    localStorage.setItem('velune_codegen_history', JSON.stringify(history.slice(0, 20)));
+  }
+
+  function loadHistory() {
+    const list    = document.getElementById('historyList');
+    const history = JSON.parse(localStorage.getItem('velune_codegen_history') || '[]');
+    if (!history.length) {
+      list.innerHTML = '<div class="history-empty">No codes generated yet.</div>';
+      return;
+    }
+    list.innerHTML = history.map(h => `
+      <div class="history-item">
+        <div>
+          <div class="history-item-code">${h.code}</div>
+          <div class="history-item-meta">User: ${h.userId} · ${new Date(h.ts).toLocaleDateString()}</div>
+        </div>
+        <button class="history-copy" onclick="copyHistoryCode('${h.code}')">Copy</button>
+      </div>`).join('');
+  }
+
+  function clearHistory() {
+    if (confirm('Clear all code history?')) {
+      localStorage.removeItem('velune_codegen_history');
+      loadHistory();
+    }
+  }
+</script>
+
+</body>
+</html>
