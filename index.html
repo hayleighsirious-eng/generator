@@ -82,7 +82,6 @@
     }
     .btn-generate:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(201,150,12,0.4); }
 
-    /* Result */
     .result-card {
       background: rgba(201,150,12,0.08);
       border: 1.5px solid rgba(201,150,12,0.3);
@@ -151,6 +150,11 @@
       gap: 8px;
       text-decoration: none;
     }
+    .wa-send-btn.disabled {
+      opacity: 0.4;
+      pointer-events: none;
+      cursor: not-allowed;
+    }
 
     .result-meta {
       font-size: 0.78rem;
@@ -160,7 +164,6 @@
       line-height: 1.6;
     }
 
-    /* History */
     .history-card {
       background: rgba(255,255,255,0.03);
       border: 1px solid rgba(255,255,255,0.08);
@@ -229,7 +232,6 @@
     }
     .history-copy:hover { color: #E8B422; border-color: rgba(201,150,12,0.4); }
 
-    /* Password gate */
     .gate {
       text-align: center;
     }
@@ -265,6 +267,13 @@
       display: none;
     }
 
+    .hint {
+      font-size: 0.72rem;
+      color: rgba(255,255,255,0.3);
+      margin-top: 6px;
+      line-height: 1.5;
+    }
+
     .main-content { display: none; }
   </style>
 </head>
@@ -272,7 +281,7 @@
 
 <div class="wrap">
 
-  <!-- ── Password Gate (protects this page) ── -->
+  <!-- Password Gate -->
   <div id="gateDiv" class="card gate">
     <h2>🔐 Admin Only</h2>
     <p>This page is for generating activation codes.<br>Enter your admin password to continue.</p>
@@ -281,7 +290,7 @@
     <div class="gate-error" id="gateError">Wrong password. Try again.</div>
   </div>
 
-  <!-- ── Main content (shown after password) ── -->
+  <!-- Main content -->
   <div class="main-content" id="mainContent">
 
     <div class="header">
@@ -290,16 +299,23 @@
     </div>
 
     <div class="card">
+
       <div class="form-group">
         <label>Customer's Supabase User ID</label>
-        <input
-          type="text"
-          id="userId"
-          placeholder="e.g. a1b2c3d4-e5f6-7890-abcd-ef1234567890"
-        />
-        <div style="font-size:0.72rem;color:rgba(255,255,255,0.3);margin-top:6px">
-          Find this in Supabase → Authentication → Users → click the user
-        </div>
+        <input type="text" id="userId" placeholder="e.g. a1b2c3d4-e5f6-7890-abcd-ef1234567890"/>
+        <div class="hint">Find this in Supabase → Authentication → Users → click the user</div>
+      </div>
+
+      <div class="form-group">
+        <label>Customer's WhatsApp Number</label>
+        <input type="tel" id="customerWhatsapp" placeholder="e.g. 2348012345678 (include country code, no +)"/>
+        <div class="hint">Used for the "Send via WhatsApp" button. Optional — you can still copy and send manually.</div>
+      </div>
+
+      <div class="form-group">
+        <label>Customer Name (optional)</label>
+        <input type="text" id="customerName" placeholder="e.g. Adebayo School"/>
+        <div class="hint">Personalises the WhatsApp message. Leave blank to use a generic greeting.</div>
       </div>
 
       <div class="form-group">
@@ -340,16 +356,11 @@
 </div>
 
 <script>
-  // ── CHANGE THESE TWO VALUES ──────────────────────────────────
-  const GATE_PASSWORD = 'Olawale@31';  // Your private password for this page
-  const LICENSE_SALT  = 'velune2024xk9mq';    // Must match exactly what's in supabase.js
-  const YOUR_WHATSAPP = '2348158167305';       // Your WhatsApp number (no +)
-  // ─────────────────────────────────────────────────────────────
+  const GATE_PASSWORD = 'Olawale@31';
+  const LICENSE_SALT  = 'velune2024xk9mq';
 
-  // Set today's date as default
   document.getElementById('issueDate').value = new Date().toISOString().split('T')[0];
 
-  // ── Password gate ────────────────────────────────────────────
   function checkGate() {
     const pw = document.getElementById('gatePassword').value;
     if (pw === GATE_PASSWORD) {
@@ -362,7 +373,6 @@
     }
   }
 
-  // ── Hash (same as in supabase.js) ────────────────────────────
   async function makeHash(str) {
     const buf  = new TextEncoder().encode(str);
     const hash = await crypto.subtle.digest('SHA-256', buf);
@@ -371,33 +381,22 @@
     return hex.substring(0, 8).toUpperCase();
   }
 
-  // ── Generate ─────────────────────────────────────────────────
   let lastGeneratedCode = '';
 
   async function generateCode() {
-    const userId    = document.getElementById('userId').value.trim();
-    const issueDate = document.getElementById('issueDate').value;
+    const userId         = document.getElementById('userId').value.trim();
+    const issueDate      = document.getElementById('issueDate').value;
+    const customerWA     = document.getElementById('customerWhatsapp').value.trim().replace(/\D/g, '');
+    const customerName   = document.getElementById('customerName').value.trim();
 
-    if (!userId) {
-      alert('Please enter the customer\'s User ID.');
-      return;
-    }
-    if (!issueDate) {
-      alert('Please select an issue date.');
-      return;
-    }
+    if (!userId) { alert('Please enter the customer\'s User ID.'); return; }
+    if (!issueDate) { alert('Please select an issue date.'); return; }
 
-    // Convert date to YYYYMMDD
     const datePart = issueDate.replace(/-/g, '');
-
-    // Generate hash
     const hashPart = await makeHash(userId + datePart + LICENSE_SALT);
-
-    // Build code
-    const code = `VLN-${hashPart}-${datePart}`;
+    const code     = `VLN-${hashPart}-${datePart}`;
     lastGeneratedCode = code;
 
-    // Show result
     document.getElementById('resultCode').textContent = code;
     document.getElementById('resultCard').style.display = 'block';
 
@@ -406,18 +405,27 @@
       `Valid for <strong style="color:#E8B422">30 days</strong> of access · ` +
       `Code expires ${expiry.toDateString()} (7-day redemption window)`;
 
-    // WhatsApp send button
+    // Build WhatsApp message
+    const greeting = customerName ? `Hello ${customerName}!` : 'Hello!';
     const msg = encodeURIComponent(
-      `Hello! Here is your Velune activation code:\n\n*${code}*\n\nEnter this on the activation page to unlock your dashboard for 30 days.\n\nThank you for subscribing! 🙏`
+      `${greeting} Here is your Velune activation code:\n\n*${code}*\n\nEnter this on the activation page to unlock your dashboard for 30 days.\n\nThank you for subscribing! 🙏`
     );
-    document.getElementById('waSendBtn').href = `https://wa.me/${YOUR_WHATSAPP}?text=${msg}`;
 
-    // Save to history
-    saveToHistory(code, userId, issueDate);
+    const waBtn = document.getElementById('waSendBtn');
+    if (customerWA) {
+      waBtn.href = `https://wa.me/${customerWA}?text=${msg}`;
+      waBtn.classList.remove('disabled');
+      waBtn.title = '';
+    } else {
+      waBtn.href = '#';
+      waBtn.classList.add('disabled');
+      waBtn.title = 'Enter the customer\'s WhatsApp number above to enable this button';
+    }
+
+    saveToHistory(code, userId, issueDate, customerName, customerWA);
     loadHistory();
   }
 
-  // ── Copy ──────────────────────────────────────────────────────
   function copyCode() {
     navigator.clipboard.writeText(lastGeneratedCode).then(() => {
       const btn = document.getElementById('copyBtn');
@@ -442,10 +450,16 @@
     setTimeout(() => el.remove(), 2000);
   }
 
-  // ── History (localStorage) ────────────────────────────────────
-  function saveToHistory(code, userId, date) {
+  function saveToHistory(code, userId, date, name, wa) {
     const history = JSON.parse(localStorage.getItem('velune_codegen_history') || '[]');
-    history.unshift({ code, userId: userId.substring(0, 8) + '...', date, ts: Date.now() });
+    history.unshift({
+      code,
+      userId: userId.substring(0, 8) + '...',
+      date,
+      name: name || null,
+      wa:   wa   || null,
+      ts:   Date.now()
+    });
     localStorage.setItem('velune_codegen_history', JSON.stringify(history.slice(0, 20)));
   }
 
@@ -460,7 +474,10 @@
       <div class="history-item">
         <div>
           <div class="history-item-code">${h.code}</div>
-          <div class="history-item-meta">User: ${h.userId} · ${new Date(h.ts).toLocaleDateString()}</div>
+          <div class="history-item-meta">
+            ${h.name ? h.name + ' · ' : ''}User: ${h.userId} · ${new Date(h.ts).toLocaleDateString()}
+            ${h.wa ? ' · 📱 ' + h.wa : ''}
+          </div>
         </div>
         <button class="history-copy" onclick="copyHistoryCode('${h.code}')">Copy</button>
       </div>`).join('');
