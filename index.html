@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Velune — Code Generator (Private)</title>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
-  <link rel="icon" type="image/x-icon/jpeg" href="./assets/images/favicon-32x32.png">
   <style>
     *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
     body {
@@ -17,9 +16,7 @@
       justify-content: center;
       padding: 24px;
     }
-
     .wrap { max-width: 500px; width: 100%; }
-
     .header { text-align: center; margin-bottom: 28px; }
     .header h1 {
       font-family: 'Playfair Display', serif;
@@ -28,7 +25,6 @@
       margin-bottom: 6px;
     }
     .header p { color: rgba(255,255,255,0.4); font-size: 0.82rem; }
-
     .card {
       background: rgba(255,255,255,0.04);
       border: 1px solid rgba(255,255,255,0.1);
@@ -36,7 +32,6 @@
       padding: 28px;
       margin-bottom: 16px;
     }
-
     .form-group { margin-bottom: 18px; }
     label {
       display: block;
@@ -65,7 +60,6 @@
     }
     input::placeholder { color: rgba(255,255,255,0.25); }
     select option { background: #0F1F3D; color: #fff; }
-
     .btn-generate {
       width: 100%;
       padding: 14px;
@@ -77,11 +71,10 @@
       font-weight: 800;
       cursor: pointer;
       font-family: 'DM Sans', sans-serif;
-      letter-spacing: 0.03em;
       transition: all 0.2s;
     }
     .btn-generate:hover { transform: translateY(-1px); box-shadow: 0 6px 20px rgba(201,150,12,0.4); }
-
+    .btn-generate:disabled { opacity: 0.6; cursor: not-allowed; transform: none; }
     .result-card {
       background: rgba(201,150,12,0.08);
       border: 1.5px solid rgba(201,150,12,0.3);
@@ -111,7 +104,6 @@
       background: rgba(0,0,0,0.2);
       border-radius: 10px;
     }
-
     .copy-btn {
       width: 100%;
       padding: 11px;
@@ -132,7 +124,6 @@
     }
     .copy-btn:hover { background: rgba(201,150,12,0.25); }
     .copy-btn.copied { background: rgba(12,122,74,0.2); border-color: rgba(12,122,74,0.4); color: #0C7A4A; }
-
     .wa-send-btn {
       width: 100%;
       padding: 11px;
@@ -150,12 +141,7 @@
       gap: 8px;
       text-decoration: none;
     }
-    .wa-send-btn.disabled {
-      opacity: 0.4;
-      pointer-events: none;
-      cursor: not-allowed;
-    }
-
+    .wa-send-btn.disabled { opacity: 0.4; pointer-events: none; }
     .result-meta {
       font-size: 0.78rem;
       color: rgba(255,255,255,0.35);
@@ -163,7 +149,6 @@
       text-align: center;
       line-height: 1.6;
     }
-
     .history-card {
       background: rgba(255,255,255,0.03);
       border: 1px solid rgba(255,255,255,0.08);
@@ -231,10 +216,7 @@
       flex-shrink: 0;
     }
     .history-copy:hover { color: #E8B422; border-color: rgba(201,150,12,0.4); }
-
-    .gate {
-      text-align: center;
-    }
+    .gate { text-align: center; }
     .gate h2 {
       font-family: 'Playfair Display', serif;
       color: #C9960C;
@@ -260,45 +242,26 @@
       cursor: pointer;
       font-family: 'DM Sans', sans-serif;
     }
-    .gate-error {
-      color: #e74c3c;
-      font-size: 0.8rem;
-      margin-top: 10px;
-      display: none;
-    }
-
-    .hint {
-      font-size: 0.72rem;
-      color: rgba(255,255,255,0.3);
-      margin-top: 6px;
-      line-height: 1.5;
-    }
-
+    .gate-error { color: #e74c3c; font-size: 0.8rem; margin-top: 10px; display: none; }
+    .hint { font-size: 0.72rem; color: rgba(255,255,255,0.3); margin-top: 6px; line-height: 1.5; }
     .main-content { display: none; }
     .plan-btn {
-  padding: 12px 8px;
-  background: rgba(255,255,255,0.07);
-  border: 1.5px solid rgba(255,255,255,0.12);
-  border-radius: 10px;
-  color: rgba(255,255,255,0.6);
-  font-size: 0.8rem;
-  font-weight: 700;
-  cursor: pointer;
-  font-family: 'DM Sans', sans-serif;
-  transition: all 0.2s;
-  line-height: 1.5;
-}
-.plan-btn small { font-weight: 400; font-size: 0.7rem; }
-.plan-btn.active {
-  border-color: #C9960C;
-  background: rgba(201,150,12,0.15);
-  color: #E8B422;
-}
-.plan-btn.plan-lifetime.active {
-  border-color: #9b59b6;
-  background: rgba(155,89,182,0.15);
-  color: #c39bd3;
-}
+      padding: 12px 8px;
+      background: rgba(255,255,255,0.07);
+      border: 1.5px solid rgba(255,255,255,0.12);
+      border-radius: 10px;
+      color: rgba(255,255,255,0.6);
+      font-size: 0.8rem;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      transition: all 0.2s;
+      line-height: 1.5;
+    }
+    .plan-btn small { font-weight: 400; font-size: 0.7rem; }
+    .plan-btn.active { border-color: #C9960C; background: rgba(201,150,12,0.15); color: #E8B422; }
+    .plan-btn.plan-lifetime.active { border-color: #9b59b6; background: rgba(155,89,182,0.15); color: #c39bd3; }
+    .loading { color: rgba(255,255,255,0.5); text-align: center; font-size: 0.85rem; margin-top: 12px; display: none; }
   </style>
 </head>
 <body>
@@ -323,7 +286,6 @@
     </div>
 
     <div class="card">
-
       <div class="form-group">
         <label>Customer's Supabase User ID</label>
         <input type="text" id="userId" placeholder="e.g. a1b2c3d4-e5f6-7890-abcd-ef1234567890"/>
@@ -333,32 +295,32 @@
       <div class="form-group">
         <label>Customer's WhatsApp Number</label>
         <input type="tel" id="customerWhatsapp" placeholder="e.g. 2348012345678 (include country code, no +)"/>
-        <div class="hint">Used for the "Send via WhatsApp" button. Optional — you can still copy and send manually.</div>
+        <div class="hint">Used for the "Send via WhatsApp" button. Optional.</div>
       </div>
 
       <div class="form-group">
         <label>Customer Name (optional)</label>
         <input type="text" id="customerName" placeholder="e.g. Adebayo School"/>
-        <div class="hint">Personalises the WhatsApp message. Leave blank to use a generic greeting.</div>
       </div>
 
       <div class="form-group">
-  <label>Plan Type</label>
-  <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
-    <button type="button" class="plan-btn active" id="btnM" onclick="setPlan('M')">Monthly<br><small>30 days</small></button>
-    <button type="button" class="plan-btn" id="btnY" onclick="setPlan('Y')">Yearly<br><small>365 days</small></button>
-    <button type="button" class="plan-btn plan-lifetime" id="btnL" onclick="setPlan('L')">Lifetime<br><small>∞ forever</small></button>
-  </div>
-</div>
+        <label>Plan Type</label>
+        <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px">
+          <button type="button" class="plan-btn active" id="btnM" onclick="setPlan('M')">Monthly<br><small>30 days</small></button>
+          <button type="button" class="plan-btn" id="btnY" onclick="setPlan('Y')">Yearly<br><small>365 days</small></button>
+          <button type="button" class="plan-btn plan-lifetime" id="btnL" onclick="setPlan('L')">Lifetime<br><small>∞ forever</small></button>
+        </div>
+      </div>
 
-<div class="form-group">
-  <label>Issue Date</label>
-  <input type="date" id="issueDate"/>
-</div>
+      <div class="form-group">
+        <label>Issue Date</label>
+        <input type="date" id="issueDate"/>
+      </div>
 
-      <button class="btn-generate" onclick="generateCode()">
+      <button class="btn-generate" id="generateBtn" onclick="generateCode()">
         Generate Activation Code
       </button>
+      <div class="loading" id="loadingMsg">⏳ Generating secure code...</div>
 
       <!-- Result -->
       <div class="result-card" id="resultCard">
@@ -389,14 +351,23 @@
 </div>
 
 <script>
-  const GATE_PASSWORD = 'Olawale@31';
-  const LICENSE_SALT  = 'velune2024xk9mq';
+  const GATE_PASSWORD_HASH = 'b9b37096d3c05f02a96c2b2417a4ee3d6a9b2c5f8e1d0a7b3c4e5f6a7b8c9d0';
+
+  const SUPABASE_URL = 'https://cbsoztcgnzhetgalalil.supabase.co';
 
   document.getElementById('issueDate').value = new Date().toISOString().split('T')[0];
 
-  function checkGate() {
+  async function hashString(str) {
+    const buf  = new TextEncoder().encode(str);
+    const hash = await crypto.subtle.digest('SHA-256', buf);
+    const arr  = Array.from(new Uint8Array(hash));
+    return arr.map(b => b.toString(16).padStart(2, '0')).join('');
+  }
+
+  async function checkGate() {
     const pw = document.getElementById('gatePassword').value;
-    if (pw === GATE_PASSWORD) {
+    const pwHash = await hashString(pw);
+    if (pwHash === GATE_PASSWORD_HASH) {
       document.getElementById('gateDiv').style.display     = 'none';
       document.getElementById('mainContent').style.display = 'block';
       loadHistory();
@@ -406,63 +377,89 @@
     }
   }
 
-  async function makeHash(str) {
-    const buf  = new TextEncoder().encode(str);
-    const hash = await crypto.subtle.digest('SHA-256', buf);
-    const arr  = Array.from(new Uint8Array(hash));
-    const hex  = arr.map(b => b.toString(16).padStart(2,'0')).join('');
-    return hex.substring(0, 8).toUpperCase();
-  }
-
   let selectedPlan = 'M';
+  let lastGeneratedCode = '';
 
-function setPlan(p) {
-  selectedPlan = p;
-  ['M','Y','L'].forEach(x => document.getElementById('btn'+x).classList.remove('active'));
-  document.getElementById('btn'+p).classList.add('active');
-}
-
-async function generateCode() {
-  const userId       = document.getElementById('userId').value.trim();
-  const issueDate    = document.getElementById('issueDate').value;
-  const customerWA   = document.getElementById('customerWhatsapp').value.trim().replace(/\D/g, '');
-  const customerName = document.getElementById('customerName').value.trim();
-
-  if (!userId)    { alert('Please enter the customer\'s User ID.'); return; }
-  if (!issueDate) { alert('Please select an issue date.'); return; }
-
-  const datePart = issueDate.replace(/-/g, '');
-  const hashPart = await makeHash(userId + selectedPlan + datePart + LICENSE_SALT);
-  const code     = `VLN-${selectedPlan}-${hashPart}-${datePart}`;
-  lastGeneratedCode = code;
-
-  const planLabels = { M: 'Monthly — 30 days', Y: 'Yearly — 365 days', L: 'Lifetime — never expires' };
-  document.getElementById('resultCode').textContent = code;
-  document.getElementById('resultCard').style.display = 'block';
-
-  const expiry = new Date(new Date(issueDate).getTime() + 7 * 86400000);
-  document.getElementById('resultMeta').innerHTML =
-    `Plan: <strong style="color:#E8B422">${planLabels[selectedPlan]}</strong> · ` +
-    `Code expires ${expiry.toDateString()} (7-day redemption window)`;
-
-  const planDesc = selectedPlan === 'L' ? 'a lifetime access code' : selectedPlan === 'Y' ? 'a yearly subscription (365 days)' : 'a monthly subscription (30 days)';
-  const greeting = customerName ? `Hello ${customerName}!` : 'Hello!';
-  const msg = encodeURIComponent(
-    `${greeting} Here is your Velune activation code:\n\n*${code}*\n\nThis gives you ${planDesc}.\nEnter it on the activation page to unlock your dashboard.\n\nThank you! 🙏`
-  );
-
-  const waBtn = document.getElementById('waSendBtn');
-  if (customerWA) {
-    waBtn.href = `https://wa.me/${customerWA}?text=${msg}`;
-    waBtn.classList.remove('disabled');
-  } else {
-    waBtn.href = '#';
-    waBtn.classList.add('disabled');
+  function setPlan(p) {
+    selectedPlan = p;
+    ['M','Y','L'].forEach(x => document.getElementById('btn'+x).classList.remove('active'));
+    document.getElementById('btn'+p).classList.add('active');
   }
 
-  saveToHistory(code, userId, issueDate, customerName, customerWA, selectedPlan);
-  loadHistory();
-}
+  async function generateCode() {
+    const userId       = document.getElementById('userId').value.trim();
+    const issueDate    = document.getElementById('issueDate').value;
+    const customerWA   = document.getElementById('customerWhatsapp').value.trim().replace(/\D/g, '');
+    const customerName = document.getElementById('customerName').value.trim();
+
+    if (!userId)    { alert('Please enter the customer\'s User ID.'); return; }
+    if (!issueDate) { alert('Please select an issue date.'); return; }
+
+    const btn = document.getElementById('generateBtn');
+    const loading = document.getElementById('loadingMsg');
+    btn.disabled = true;
+    loading.style.display = 'block';
+    document.getElementById('resultCard').style.display = 'none';
+
+    try {
+      const response = await fetch(
+        `${SUPABASE_URL}/functions/v1/generate-code`,
+        {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId,
+            planType: selectedPlan,
+            issueDate
+          })
+        }
+      );
+
+      const result = await response.json();
+
+      if (!result.code) {
+        alert('Error generating code. Please try again.');
+        return;
+      }
+
+      const code = result.code;
+      lastGeneratedCode = code;
+
+      const planLabels = { M: 'Monthly — 30 days', Y: 'Yearly — 365 days', L: 'Lifetime — never expires' };
+      document.getElementById('resultCode').textContent = code;
+      document.getElementById('resultCard').style.display = 'block';
+
+      const expiry = new Date(new Date(issueDate).getTime() + 7 * 86400000);
+      document.getElementById('resultMeta').innerHTML =
+        `Plan: <strong style="color:#E8B422">${planLabels[selectedPlan]}</strong> · ` +
+        `Code expires ${expiry.toDateString()} (7-day redemption window)`;
+
+      const planDesc = selectedPlan === 'L' ? 'a lifetime access code' : selectedPlan === 'Y' ? 'a yearly subscription (365 days)' : 'a monthly subscription (30 days)';
+      const greeting = customerName ? `Hello ${customerName}!` : 'Hello!';
+      const msg = encodeURIComponent(
+        `${greeting} Here is your Velune activation code:\n\n*${code}*\n\nThis gives you ${planDesc}.\nEnter it on the activation page to unlock your dashboard.\n\nThank you! 🙏`
+      );
+
+      const waBtn = document.getElementById('waSendBtn');
+      if (customerWA) {
+        waBtn.href = `https://wa.me/${customerWA}?text=${msg}`;
+        waBtn.classList.remove('disabled');
+      } else {
+        waBtn.href = '#';
+        waBtn.classList.add('disabled');
+      }
+
+      saveToHistory(code, userId, issueDate, customerName, customerWA, selectedPlan);
+      loadHistory();
+
+    } catch (err) {
+      alert('Connection error. Please try again.');
+    } finally {
+      btn.disabled = false;
+      loading.style.display = 'none';
+    }
+  }
+
   function copyCode() {
     navigator.clipboard.writeText(lastGeneratedCode).then(() => {
       const btn = document.getElementById('copyBtn');
@@ -488,32 +485,29 @@ async function generateCode() {
   }
 
   function saveToHistory(code, userId, date, name, wa, plan) {
-  const history = JSON.parse(localStorage.getItem('velune_codegen_history') || '[]');
-  history.unshift({ code, userId: userId.substring(0,8)+'...', date, name: name||null, wa: wa||null, plan: plan||'M', ts: Date.now() });
-  localStorage.setItem('velune_codegen_history', JSON.stringify(history.slice(0,20)));
-}
+    const history = JSON.parse(localStorage.getItem('velune_codegen_history') || '[]');
+    history.unshift({ code, userId: userId.substring(0,8)+'...', date, name: name||null, wa: wa||null, plan: plan||'M', ts: Date.now() });
+    localStorage.setItem('velune_codegen_history', JSON.stringify(history.slice(0,20)));
+  }
 
-function loadHistory() {
-  const list    = document.getElementById('historyList');
-  const history = JSON.parse(localStorage.getItem('velune_codegen_history') || '[]');
-  const planColors = { M: '#E8B422', Y: '#3498db', L: '#c39bd3' };
-  const planNames  = { M: 'Monthly', Y: 'Yearly', L: 'Lifetime' };
-  if (!history.length) { list.innerHTML = '<div class="history-empty">No codes generated yet.</div>'; return; }
-  list.innerHTML = history.map(h => `
-    <div class="history-item">
-      <div>
-        <div class="history-item-code" style="color:${planColors[h.plan||'M']}">${h.code}</div>
-        <div class="history-item-meta">
-          <span style="color:${planColors[h.plan||'M']};font-weight:700">${planNames[h.plan||'M']}</span> ·
-          ${h.name ? h.name+' · ' : ''}${new Date(h.ts).toLocaleDateString()}
+  function loadHistory() {
+    const list    = document.getElementById('historyList');
+    const history = JSON.parse(localStorage.getItem('velune_codegen_history') || '[]');
+    const planColors = { M: '#E8B422', Y: '#3498db', L: '#c39bd3' };
+    const planNames  = { M: 'Monthly', Y: 'Yearly', L: 'Lifetime' };
+    if (!history.length) { list.innerHTML = '<div class="history-empty">No codes generated yet.</div>'; return; }
+    list.innerHTML = history.map(h => `
+      <div class="history-item">
+        <div>
+          <div class="history-item-code" style="color:${planColors[h.plan||'M']}">${h.code}</div>
+          <div class="history-item-meta">
+            <span style="color:${planColors[h.plan||'M']};font-weight:700">${planNames[h.plan||'M']}</span> ·
+            ${h.name ? h.name+' · ' : ''}${new Date(h.ts).toLocaleDateString()}
+          </div>
         </div>
-      </div>
-      <button class="history-copy" onclick="copyHistoryCode('${h.code}')">Copy</button>
-    </div>`).join('');
-}
-
-  
-  
+        <button class="history-copy" onclick="copyHistoryCode('${h.code}')">Copy</button>
+      </div>`).join('');
+  }
 
   function clearHistory() {
     if (confirm('Clear all code history?')) {
