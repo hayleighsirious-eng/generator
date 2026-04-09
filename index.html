@@ -263,6 +263,12 @@
     .plan-btn.active { border-color: #C9960C; background: rgba(201,150,12,0.15); color: #E8B422; }
     .plan-btn.plan-lifetime.active { border-color: #9b59b6; background: rgba(155,89,182,0.15); color: #c39bd3; }
     .loading { color: rgba(255,255,255,0.5); text-align: center; font-size: 0.85rem; margin-top: 12px; display: none; }
+
+    .dashboard a{
+       color: #E8B422;
+       text-decoration: none;
+       margin-top: 5px;
+    }
   </style>
 </head>
 <body>
@@ -322,6 +328,13 @@
         Generate Activation Code
       </button>
       <div class="loading" id="loadingMsg">⏳ Generating secure code...</div>
+      
+<div class="dashboard">
+<a href="./dashboard.html">
+        Go To Dashboard
+      </a>
+</div>
+      
 
       <!-- Result -->
       <div class="result-card" id="resultCard">
