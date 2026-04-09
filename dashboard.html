@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Velune — Admin Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+  <style>
+    :root {
+      --navy: #0F1F3D;
+      --gold: #C9960C;
+      --gold2: #E8B422;
+      --bg: #06101E;
+      --card: rgba(255,255,255,0.04);
+      --border: rgba(255,255,255,0.07);
+      --text: rgba(255,255,255,0.88);
+      --muted: rgba(255,255,255,0.38);
+      --sidebar-w: 230px;
+    }
+    *,*::before,*::after { box-sizing:border-box; margin:0; padding:0; }
+    html { font-size:16px; }
+    body { font-family:'DM Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; overflow-x:hidden; }
+
+    /* ── GATE ── */
+    .gate-wrap {
+      min-height:100vh; display:flex; align-items:center; justify-content:center; padding:20px;
+      background:radial-gradient(ellipse at 50% 30%, rgba(201,150,12,0.07) 0%, transparent 65%);
+    }
+    .gate-card {
+      background:rgba(255,255,255,0.04); border:1px solid rgba(255,255,255,0.1);
+      border-radius:22px; padding:36px 28px; width:100%; max-width:380px; text-align:center;
+    }
+    .gate-logo {
+      width:56px; height:56px; background:linear-gradient(135deg,var(--gold),var(--gold2));
+      border-radius:14px; display:flex; align-items:center; justify-content:center; margin:0 auto 18px;
+    }
+    .gate-card h2 { font-family:'Playfair Display',serif; color:#fff; font-size:1.5rem; margin-bottom:6px; }
+    .gate-card p { color:var(--muted); font-size:0.83rem; margin-bottom:24px; }
+    .gate-input {
+      width:100%; padding:13px 16px; background:rgba(255,255,255,0.07); border:1.5px solid rgba(255,255,255,0.12);
+      border-radius:12px; color:#fff; font-size:1rem; font-family:'DM Sans',sans-serif; outline:none;
+      text-align:center; letter-spacing:0.15em; margin-bottom:12px; transition:all 0.2s;
+    }
+    .gate-input:focus { border-color:var(--gold); background:rgba(255,255,255,0.1); }
+    .gate-btn {
+      width:100%; padding:13px; background:linear-gradient(135deg,var(--gold),var(--gold2));
+      color:var(--navy); border:none; border-radius:12px; font-size:0.95rem; font-weight:800;
+      cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.2s;
+    }
+    .gate-btn:hover { transform:translateY(-1px); box-shadow:0 6px 20px rgba(201,150,12,0.35); }
+    .gate-error { color:#e74c3c; font-size:0.8rem; margin-top:10px; display:none; }
+
+    /* ── APP SHELL ── */
+    .app { display:none; }
+
+    /* ── TOPBAR (mobile only) ── */
+    .topbar {
+      display:none;
+      position:fixed; top:0; left:0; right:0; height:56px;
+      background:rgba(10,20,40,0.98); border-bottom:1px solid var(--border);
+      align-items:center; justify-content:space-between;
+      padding:0 16px; z-index:200;
+    }
+    .topbar-brand { display:flex; align-items:center; gap:9px; }
+    .topbar-brand .s-icon { width:30px; height:30px; background:linear-gradient(135deg,var(--gold),var(--gold2)); border-radius:8px; display:flex; align-items:center; justify-content:center; }
+    .topbar-brand span { font-family:'Playfair Display',serif; font-size:1.1rem; font-weight:900; color:#fff; }
+    .hamburger { background:none; border:none; cursor:pointer; padding:6px; display:flex; flex-direction:column; gap:5px; }
+    .hamburger span { display:block; width:22px; height:2px; background:var(--text); border-radius:2px; transition:all 0.3s; }
+    .hamburger.open span:nth-child(1) { transform:translateY(7px) rotate(45deg); }
+    .hamburger.open span:nth-child(2) { opacity:0; }
+    .hamburger.open span:nth-child(3) { transform:translateY(-7px) rotate(-45deg); }
+
+    /* ── OVERLAY ── */
+    .overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.6); z-index:150; }
+    .overlay.open { display:block; }
+
+    /* ── SIDEBAR ── */
+    .sidebar {
+      position:fixed; left:0; top:0; bottom:0; width:var(--sidebar-w);
+      background:rgba(10,20,40,0.98); border-right:1px solid var(--border);
+      display:flex; flex-direction:column; z-index:160; padding:24px 0;
+      transition:transform 0.3s ease;
+    }
+    .sidebar-brand {
+      display:flex; align-items:center; gap:10px;
+      padding:0 20px 22px; border-bottom:1px solid var(--border); margin-bottom:14px;
+    }
+    .s-icon { width:34px; height:34px; background:linear-gradient(135deg,var(--gold),var(--gold2)); border-radius:9px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+    .s-name { font-family:'Playfair Display',serif; font-size:1.15rem; font-weight:900; color:#fff; }
+    .s-badge { font-size:0.62rem; background:rgba(201,150,12,0.18); color:var(--gold2); border:1px solid rgba(201,150,12,0.3); border-radius:6px; padding:2px 7px; font-weight:700; margin-left:auto; }
+    .nav-item {
+      display:flex; align-items:center; gap:11px; padding:11px 20px;
+      color:var(--muted); font-size:0.86rem; font-weight:600; cursor:pointer;
+      transition:all 0.15s; border-left:3px solid transparent;
+    }
+    .nav-item:hover { color:var(--text); background:rgba(255,255,255,0.03); }
+    .nav-item.active { color:var(--gold2); border-left-color:var(--gold); background:rgba(201,150,12,0.05); }
+    .nav-item svg { width:17px; height:17px; flex-shrink:0; }
+    .nav-sec { font-size:0.65rem; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:rgba(255,255,255,0.18); padding:14px 20px 7px; }
+    .sidebar-footer { margin-top:auto; padding:16px 20px; border-top:1px solid var(--border); font-size:0.72rem; color:var(--muted); }
+
+    /* ── MAIN ── */
+    .main { margin-left:var(--sidebar-w); min-height:100vh; padding:28px 28px; transition:margin 0.3s; }
+    .page { display:none; animation:fadeIn 0.25s ease; }
+    .page.active { display:block; }
+    @keyframes fadeIn { from{opacity:0;transform:translateY(6px)}to{opacity:1;transform:translateY(0)} }
+
+    .page-header { display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:22px; flex-wrap:wrap; gap:12px; }
+    .page-title h1 { font-family:'Playfair Display',serif; font-size:1.5rem; color:#fff; margin-bottom:3px; }
+    .page-title p { color:var(--muted); font-size:0.82rem; }
+    .refresh-btn { padding:8px 16px; background:rgba(255,255,255,0.05); border:1px solid var(--border); color:var(--muted); border-radius:10px; font-size:0.82rem; font-weight:600; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.2s; display:flex; align-items:center; gap:7px; white-space:nowrap; }
+    .refresh-btn:hover { color:var(--text); border-color:rgba(255,255,255,0.15); }
+
+    /* ── STATS ── */
+    .stats-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:12px; margin-bottom:20px; }
+    .stat-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:16px 18px; position:relative; overflow:hidden; }
+    .stat-card::after { content:''; position:absolute; bottom:-16px; right:-16px; width:55px; height:55px; border-radius:50%; background:var(--dot,rgba(201,150,12,0.08)); }
+    .stat-label { font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:8px; }
+    .stat-value { font-family:'Playfair Display',serif; font-size:1.75rem; font-weight:700; color:#fff; margin-bottom:2px; }
+    .stat-sub { font-size:0.72rem; color:var(--muted); }
+    .stat-icon { position:absolute; top:14px; right:14px; opacity:0.45; }
+
+    /* ── CHARTS ── */
+    .charts-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+    .chart-card { background:var(--card); border:1px solid var(--border); border-radius:14px; padding:18px; }
+    .chart-title { font-size:0.84rem; font-weight:700; color:#fff; margin-bottom:3px; }
+    .chart-sub { font-size:0.73rem; color:var(--muted); margin-bottom:16px; }
+    .chart-wrap { position:relative; height:200px; }
+
+    /* ── CARD / TABLE ── */
+    .card { background:var(--card); border:1px solid var(--border); border-radius:14px; overflow:hidden; margin-bottom:18px; }
+    .card-header { display:flex; align-items:center; justify-content:space-between; padding:14px 18px; border-bottom:1px solid var(--border); flex-wrap:wrap; gap:10px; }
+    .card-title { font-size:0.85rem; font-weight:700; color:#fff; }
+    .search-box { display:flex; align-items:center; gap:9px; background:rgba(255,255,255,0.05); border:1px solid var(--border); border-radius:9px; padding:8px 12px; width:100%; max-width:260px; }
+    .search-box input { background:none; border:none; outline:none; color:var(--text); font-size:0.84rem; font-family:'DM Sans',sans-serif; width:100%; }
+    .search-box input::placeholder { color:var(--muted); }
+    .table-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; }
+    table { width:100%; border-collapse:collapse; min-width:400px; }
+    thead tr { border-bottom:1px solid var(--border); }
+    th { padding:10px 14px; text-align:left; font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); white-space:nowrap; }
+    td { padding:12px 14px; font-size:0.83rem; border-bottom:1px solid rgba(255,255,255,0.03); vertical-align:middle; }
+    tr:last-child td { border-bottom:none; }
+    tr:hover td { background:rgba(255,255,255,0.02); }
+
+    .badge { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; border-radius:20px; font-size:0.68rem; font-weight:700; }
+    .badge-active { background:rgba(12,122,74,0.15); color:#2ecc71; }
+    .badge-trial { background:rgba(52,152,219,0.15); color:#3498db; }
+    .badge-expired { background:rgba(192,57,43,0.12); color:#e74c3c; }
+    .badge-lifetime { background:rgba(155,89,182,0.15); color:#c39bd3; }
+
+    .empty-state { text-align:center; padding:40px 20px; color:var(--muted); font-size:0.84rem; }
+    .spinner { width:18px; height:18px; border:2px solid rgba(255,255,255,0.1); border-top-color:var(--gold); border-radius:50%; animation:spin 0.7s linear infinite; display:inline-block; }
+    @keyframes spin { to{transform:rotate(360deg)} }
+    .loading-screen { display:flex; align-items:center; justify-content:center; padding:44px; gap:12px; color:var(--muted); font-size:0.84rem; }
+
+    /* ── GENERATOR ── */
+    .gen-grid { display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+    .form-group { margin-bottom:14px; }
+    .form-label { display:block; font-size:0.7rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:var(--muted); margin-bottom:6px; }
+    .form-input { width:100%; padding:11px 13px; background:rgba(255,255,255,0.05); border:1.5px solid var(--border); border-radius:10px; color:#fff; font-size:0.88rem; font-family:'DM Sans',sans-serif; outline:none; transition:all 0.2s; }
+    .form-input:focus { border-color:var(--gold); background:rgba(255,255,255,0.08); }
+    .form-input::placeholder { color:rgba(255,255,255,0.18); }
+    .hint { font-size:0.68rem; color:rgba(255,255,255,0.2); margin-top:4px; }
+    .plan-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:8px; }
+    .plan-btn { padding:10px 6px; background:rgba(255,255,255,0.04); border:1.5px solid var(--border); border-radius:9px; color:var(--muted); font-size:0.77rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.2s; text-align:center; line-height:1.5; }
+    .plan-btn small { font-weight:400; font-size:0.67rem; display:block; }
+    .plan-btn.active { border-color:var(--gold); background:rgba(201,150,12,0.1); color:var(--gold2); }
+    .plan-btn.plan-lifetime.active { border-color:#9b59b6; background:rgba(155,89,182,0.1); color:#c39bd3; }
+    .btn-primary { width:100%; padding:12px; background:linear-gradient(135deg,var(--gold),var(--gold2)); color:var(--navy); border:none; border-radius:11px; font-size:0.92rem; font-weight:800; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.2s; }
+    .btn-primary:hover { transform:translateY(-1px); box-shadow:0 5px 18px rgba(201,150,12,0.3); }
+    .btn-primary:disabled { opacity:0.5; cursor:not-allowed; transform:none; }
+    .result-box { background:rgba(201,150,12,0.06); border:1.5px solid rgba(201,150,12,0.18); border-radius:12px; padding:16px; display:none; margin-top:12px; }
+    .result-label { font-size:0.68rem; font-weight:700; text-transform:uppercase; letter-spacing:0.08em; color:rgba(201,150,12,0.55); margin-bottom:8px; }
+    .result-code { font-family:'DM Mono',monospace; font-size:1.1rem; font-weight:500; color:var(--gold2); letter-spacing:0.08em; text-align:center; padding:12px; background:rgba(0,0,0,0.22); border-radius:9px; margin-bottom:11px; word-break:break-all; }
+    .result-actions { display:flex; gap:8px; }
+    .btn-copy { flex:1; padding:9px; background:rgba(201,150,12,0.1); border:1px solid rgba(201,150,12,0.22); color:var(--gold2); border-radius:8px; font-size:0.78rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; transition:all 0.2s; display:flex; align-items:center; justify-content:center; gap:5px; }
+    .btn-copy.copied { background:rgba(12,122,74,0.15); border-color:rgba(12,122,74,0.3); color:#2ecc71; }
+    .btn-wa { flex:1; padding:9px; background:linear-gradient(135deg,#25D366,#20bc5a); border:none; color:#fff; border-radius:8px; font-size:0.78rem; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; text-decoration:none; display:flex; align-items:center; justify-content:center; gap:5px; }
+    .btn-wa.disabled { opacity:0.3; pointer-events:none; }
+    .result-meta { font-size:0.7rem; color:var(--muted); margin-top:8px; text-align:center; }
+    .loading-msg { color:var(--muted); font-size:0.78rem; text-align:center; margin-top:8px; display:none; }
+
+    /* ── TOAST ── */
+    .toast-container { position:fixed; bottom:20px; right:16px; z-index:9999; display:flex; flex-direction:column; gap:7px; max-width:calc(100vw - 32px); }
+    .toast { padding:11px 16px; border-radius:10px; font-size:0.82rem; font-weight:600; display:flex; align-items:center; gap:7px; animation:slideIn 0.3s ease; }
+    @keyframes slideIn { from{transform:translateX(40px);opacity:0}to{transform:translateX(0);opacity:1} }
+    .toast.success { background:rgba(12,122,74,0.15); border:1px solid rgba(12,122,74,0.3); color:#2ecc71; }
+    .toast.error { background:rgba(192,57,43,0.12); border:1px solid rgba(192,57,43,0.3); color:#e74c3c; }
+    .toast.info { background:rgba(52,152,219,0.15); border:1px solid rgba(52,152,219,0.3); color:#3498db; }
+
+    /* ══════════════════════════════════
+       RESPONSIVE BREAKPOINTS
+    ══════════════════════════════════ */
+
+    /* Tablet: 768px - 1024px */
+    @media(max-width:1024px) {
+      .stats-grid { grid-template-columns:repeat(3,1fr); }
+      .charts-grid { grid-template-columns:1fr 1fr; }
+      .gen-grid { grid-template-columns:1fr; }
+    }
+
+    /* Mobile: below 768px */
+    @media(max-width:768px) {
+      .topbar { display:flex; }
+      .sidebar { transform:translateX(-100%); top:0; padding-top:16px; }
+      .sidebar.open { transform:translateX(0); }
+      .sidebar-brand { display:none; } /* hidden on mobile since topbar shows branding */
+      .main { margin-left:0; padding:72px 14px 20px; }
+      .stats-grid { grid-template-columns:1fr 1fr; gap:10px; }
+      .stat-card { padding:14px 14px; }
+      .stat-value { font-size:1.5rem; }
+      .stat-icon { display:none; }
+      .charts-grid { grid-template-columns:1fr; gap:14px; }
+      .chart-wrap { height:180px; }
+      .page-header { flex-direction:column; align-items:flex-start; gap:10px; }
+      .page-header .refresh-btn { align-self:flex-end; }
+      .search-box { max-width:100%; }
+      .card-header { flex-direction:column; align-items:flex-start; }
+      .gen-grid { grid-template-columns:1fr; }
+      .page-title h1 { font-size:1.3rem; }
+      table { min-width:360px; }
+      td, th { padding:10px 12px; }
+      .result-code { font-size:0.95rem; letter-spacing:0.05em; }
+    }
+
+    /* Small mobile: below 400px */
+    @media(max-width:400px) {
+      .stats-grid { grid-template-columns:1fr 1fr; }
+      .stat-value { font-size:1.3rem; }
+      .gate-card { padding:28px 20px; }
+      .plan-grid { grid-template-columns:1fr 1fr 1fr; }
+      .plan-btn { font-size:0.7rem; padding:8px 4px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- GATE -->
+<div class="gate-wrap" id="gateWrap">
+  <div class="gate-card">
+    <div class="gate-logo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#0F1F3D" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg>
+    </div>
+    <h2>Velune Admin</h2>
+    <p>Authorized access only</p>
+    <input type="password" class="gate-input" id="gatePassword" placeholder="Enter password" onkeydown="if(event.key==='Enter')checkGate()"/>
+    <button class="gate-btn" onclick="checkGate()">Enter Dashboard</button>
+    <div class="gate-error" id="gateError">Wrong password. Try again.</div>
+  </div>
+</div>
+
+<!-- APP -->
+<div class="app" id="app">
+
+  <!-- Mobile topbar -->
+  <div class="topbar" id="topbar">
+    <div class="topbar-brand">
+      <div class="s-icon"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#0F1F3D" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+      <span>Velune</span>
+    </div>
+    <button class="hamburger" id="hamburger" onclick="toggleSidebar()" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+
+  <!-- Overlay -->
+  <div class="overlay" id="overlay" onclick="closeSidebar()"></div>
+
+  <!-- Sidebar -->
+  <aside class="sidebar" id="sidebar">
+    <div class="sidebar-brand">
+      <div class="s-icon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#0F1F3D" stroke-width="2.5"><path d="M2 3h6a4 4 0 0 1 4 4v14a3 3 0 0 0-3-3H2z"/><path d="M22 3h-6a4 4 0 0 0-4 4v14a3 3 0 0 1 3-3h7z"/></svg></div>
+      <span class="s-name">Velune</span>
+      <span class="s-badge">ADMIN</span>
+    </div>
+    <div class="nav-sec">Overview</div>
+    <div class="nav-item active" onclick="showPage('overview',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+      Dashboard
+    </div>
+    <div class="nav-sec">Customers</div>
+    <div class="nav-item" onclick="showPage('customers',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+      All Customers
+    </div>
+    <div class="nav-sec">Tools</div>
+    <div class="nav-item" onclick="showPage('generator',this)">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+      Code Generator
+    </div>
+    <div class="sidebar-footer">
+      Velune Admin v2.0<br>
+      <span style="color:rgba(255,255,255,0.18)">Private — only you</span>
+    </div>
+  </aside>
+
+  <!-- Main -->
+  <main class="main">
+
+    <!-- OVERVIEW -->
+    <div class="page active" id="page-overview">
+      <div class="page-header">
+        <div class="page-title">
+          <h1>Dashboard</h1>
+          <p id="overviewDate"></p>
+        </div>
+        <button class="refresh-btn" onclick="loadAllData()">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Refresh
+        </button>
+      </div>
+
+      <div class="stats-grid">
+        <div class="stat-card" style="--dot:rgba(201,150,12,0.1)">
+          <div class="stat-label">Total</div>
+          <div class="stat-value" id="statTotal">—</div>
+          <div class="stat-sub">Customers</div>
+          <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(201,150,12,0.6)" stroke-width="1.5"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg></div>
+        </div>
+        <div class="stat-card" style="--dot:rgba(46,204,113,0.1)">
+          <div class="stat-label">Active</div>
+          <div class="stat-value" id="statActive">—</div>
+          <div class="stat-sub">Paid licenses</div>
+          <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(46,204,113,0.6)" stroke-width="1.5"><polyline points="20 6 9 17 4 12"/></svg></div>
+        </div>
+        <div class="stat-card" style="--dot:rgba(52,152,219,0.1)">
+          <div class="stat-label">Trial</div>
+          <div class="stat-value" id="statTrial">—</div>
+          <div class="stat-sub">Free period</div>
+          <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(52,152,219,0.6)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+        </div>
+        <div class="stat-card" style="--dot:rgba(192,57,43,0.1)">
+          <div class="stat-label">Expired</div>
+          <div class="stat-value" id="statExpired">—</div>
+          <div class="stat-sub">Need renewal</div>
+          <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(192,57,43,0.6)" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+        </div>
+        <div class="stat-card" style="--dot:rgba(155,89,182,0.1)">
+          <div class="stat-label">Students</div>
+          <div class="stat-value" id="statStudents">—</div>
+          <div class="stat-sub">All schools</div>
+          <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(155,89,182,0.6)" stroke-width="1.5"><path d="M22 10v6M2 10l10-5 10 5-10 5z"/><path d="M6 12v5c3 3 9 3 12 0v-5"/></svg></div>
+        </div>
+        <div class="stat-card" style="--dot:rgba(46,204,113,0.1)">
+          <div class="stat-label">Revenue</div>
+          <div class="stat-value" id="statRevenue">—</div>
+          <div class="stat-sub">Est. monthly</div>
+          <div class="stat-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="rgba(46,204,113,0.6)" stroke-width="1.5"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg></div>
+        </div>
+      </div>
+
+      <div class="charts-grid">
+        <div class="chart-card">
+          <div class="chart-title">License Breakdown</div>
+          <div class="chart-sub">Customer status distribution</div>
+          <div class="chart-wrap"><canvas id="pieChart"></canvas></div>
+        </div>
+        <div class="chart-card">
+          <div class="chart-title">Students Per School</div>
+          <div class="chart-sub">Top customers by count</div>
+          <div class="chart-wrap"><canvas id="barChart"></canvas></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <span class="card-title">Recent Signups</span>
+          <span style="font-size:0.73rem;color:var(--muted)">Last 5</span>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Email</th><th>Status</th><th>Students</th><th>Joined</th></tr></thead>
+            <tbody id="recentBody"><tr><td colspan="4"><div class="loading-screen"><div class="spinner"></div>Loading...</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- CUSTOMERS -->
+    <div class="page" id="page-customers">
+      <div class="page-header">
+        <div class="page-title">
+          <h1>All Customers</h1>
+          <p id="customerCount">Loading...</p>
+        </div>
+        <div class="search-box">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+          <input type="text" id="searchInput" placeholder="Search by email..." oninput="filterCustomers()"/>
+        </div>
+      </div>
+      <div class="card">
+        <div class="table-wrap">
+          <table>
+            <thead><tr><th>Email</th><th>Status</th><th>Days Left</th><th>Students</th><th>Joined</th></tr></thead>
+            <tbody id="customersBody"><tr><td colspan="5"><div class="loading-screen"><div class="spinner"></div>Loading...</div></td></tr></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- GENERATOR -->
+    <div class="page" id="page-generator">
+      <div class="page-header">
+        <div class="page-title"><h1>Code Generator</h1><p>Generate secure activation codes</p></div>
+      </div>
+      <div class="gen-grid">
+        <div class="card" style="padding:20px">
+          <div class="form-group">
+            <label class="form-label">Customer's User ID</label>
+            <input type="text" class="form-input" id="genUserId" placeholder="a1b2c3d4-e5f6-7890-abcd-ef1234567890"/>
+            <div class="hint">Supabase → Authentication → Users</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">WhatsApp Number</label>
+            <input type="tel" class="form-input" id="genWhatsapp" placeholder="2348012345678"/>
+            <div class="hint">Optional — for Send via WhatsApp</div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Customer Name (optional)</label>
+            <input type="text" class="form-input" id="genName" placeholder="e.g. Adebayo School"/>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Plan Type</label>
+            <div class="plan-grid">
+              <button type="button" class="plan-btn active" id="btnM" onclick="setPlan('M')">Monthly<small>30 days</small></button>
+              <button type="button" class="plan-btn" id="btnY" onclick="setPlan('Y')">Yearly<small>365 days</small></button>
+              <button type="button" class="plan-btn plan-lifetime" id="btnL" onclick="setPlan('L')">Lifetime<small>∞</small></button>
+            </div>
+          </div>
+          <div class="form-group">
+            <label class="form-label">Issue Date</label>
+            <input type="date" class="form-input" id="genIssueDate"/>
+          </div>
+          <button class="btn-primary" id="genBtn" onclick="generateCode()">Generate Activation Code</button>
+          <div class="loading-msg" id="genLoading">⏳ Generating secure code...</div>
+          <div class="result-box" id="genResult">
+            <div class="result-label">Activation Code</div>
+            <div class="result-code" id="genCode"></div>
+            <div class="result-actions">
+              <button class="btn-copy" id="genCopyBtn" onclick="copyGenCode()">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy
+              </button>
+              <a class="btn-wa" id="genWaBtn" href="#" target="_blank">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="white"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"/></svg>WhatsApp
+              </a>
+            </div>
+            <div class="result-meta" id="genMeta"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-header">
+            <span class="card-title">Recent Codes</span>
+            <button onclick="clearHistory()" style="background:none;border:none;color:var(--muted);font-size:0.73rem;cursor:pointer;font-family:'DM Sans',sans-serif">Clear</button>
+          </div>
+          <div id="genHistory"></div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+</div>
+
+<div class="toast-container" id="toastContainer"></div>
+
+<script>
+  const GATE_PASSWORD_HASH = '5ea3fa730b301153634748a702fc8487a3d799f7080e398a51ebdabc0a388571';
+  const SUPABASE_URL  = 'https://cbsoztcgnzhetgalalil.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNic296dGNnbnpoZXRnYWxhbGlsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzUzODYzNTQsImV4cCI6MjA5MDk2MjM1NH0.PrdwDAJxSs-ygmIT6ew_TpxvAlHqged1V4mmje15CaI';
+  const ADMIN_SECRET  = 'velune_admin_2024';
+
+  // ── GATE ──
+  async function hashString(str) {
+    const buf = new TextEncoder().encode(str);
+    const hash = await crypto.subtle.digest('SHA-256', buf);
+    return Array.from(new Uint8Array(hash)).map(b=>b.toString(16).padStart(2,'0')).join('');
+  }
+  async function checkGate() {
+    const pw = document.getElementById('gatePassword').value;
+    if ((await hashString(pw)) === GATE_PASSWORD_HASH) {
+      document.getElementById('gateWrap').style.display = 'none';
+      document.getElementById('app').style.display = 'block';
+      document.getElementById('overviewDate').textContent = new Date().toLocaleDateString('en-GB',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+      document.getElementById('genIssueDate').value = new Date().toISOString().split('T')[0];
+      loadAllData();
+      loadGenHistory();
+    } else {
+      document.getElementById('gateError').style.display = 'block';
+      document.getElementById('gatePassword').value = '';
+    }
+  }
+
+  // ── HAMBURGER ──
+  function toggleSidebar() {
+    const sidebar = document.getElementById('sidebar');
+    const hamburger = document.getElementById('hamburger');
+    const overlay = document.getElementById('overlay');
+    sidebar.classList.toggle('open');
+    hamburger.classList.toggle('open');
+    overlay.classList.toggle('open');
+    document.body.style.overflow = sidebar.classList.contains('open') ? 'hidden' : '';
+  }
+  function closeSidebar() {
+    document.getElementById('sidebar').classList.remove('open');
+    document.getElementById('hamburger').classList.remove('open');
+    document.getElementById('overlay').classList.remove('open');
+    document.body.style.overflow = '';
+  }
+
+  // ── SUPABASE ──
+  async function sbFetch(path, options={}) {
+    const res = await fetch(`${SUPABASE_URL}/rest/v1/${path}`, {
+      ...options,
+      headers: { 'apikey':SUPABASE_ANON, 'Authorization':`Bearer ${SUPABASE_ANON}`, 'Content-Type':'application/json', ...(options.headers||{}) }
+    });
+    if (!res.ok) throw new Error(await res.text());
+    const t = await res.text();
+    return t ? JSON.parse(t) : [];
+  }
+
+  let allCustomers = [], pieChartInst = null, barChartInst = null;
+
+  async function loadAllData() {
+    try {
+      const [profiles, students, emailData] = await Promise.all([
+        sbFetch('profiles?select=id,trial_end,license_end,lifetime_access,created_at'),
+        sbFetch('students?select=owner_id'),
+        sbFetch('profiles?select=id,email')
+      ]);
+      const studentMap = {}, emailMap = {};
+      students.forEach(s => { studentMap[s.owner_id] = (studentMap[s.owner_id]||0)+1; });
+      emailData.forEach(e => { if(e.email) emailMap[e.id]=e.email; });
+      const now = Date.now();
+      allCustomers = profiles.map(p => {
+        let status='expired', daysLeft=0;
+        if(p.lifetime_access){status='lifetime';daysLeft=99999;}
+        else if(p.license_end&&now<p.license_end){status='active';daysLeft=Math.ceil((p.license_end-now)/86400000);}
+        else if(p.trial_end&&now<p.trial_end){status='trial';daysLeft=Math.ceil((p.trial_end-now)/86400000);}
+        return {id:p.id,email:emailMap[p.id]||p.id.substring(0,8)+'...',status,daysLeft,students:studentMap[p.id]||0,joined:p.created_at};
+      });
+      renderStats(); renderCharts(); renderRecent(); renderCustomersTable(allCustomers);
+    } catch(err) { showToast('Error: '+err.message,'error'); }
+  }
+
+  function renderStats() {
+    const total=allCustomers.length, active=allCustomers.filter(c=>c.status==='active'||c.status==='lifetime').length;
+    const trial=allCustomers.filter(c=>c.status==='trial').length, expired=allCustomers.filter(c=>c.status==='expired').length;
+    const students=allCustomers.reduce((s,c)=>s+c.students,0);
+    document.getElementById('statTotal').textContent=total;
+    document.getElementById('statActive').textContent=active;
+    document.getElementById('statTrial').textContent=trial;
+    document.getElementById('statExpired').textContent=expired;
+    document.getElementById('statStudents').textContent=students.toLocaleString();
+    document.getElementById('statRevenue').textContent='₦'+(active*5000).toLocaleString();
+    document.getElementById('customerCount').textContent=`${total} registered customer${total!==1?'s':''}`;
+  }
+
+  function renderCharts() {
+    const active=allCustomers.filter(c=>c.status==='active').length;
+    const trial=allCustomers.filter(c=>c.status==='trial').length;
+    const expired=allCustomers.filter(c=>c.status==='expired').length;
+    const lifetime=allCustomers.filter(c=>c.status==='lifetime').length;
+    if(pieChartInst) pieChartInst.destroy();
+    pieChartInst = new Chart(document.getElementById('pieChart'),{
+      type:'doughnut',
+      data:{labels:['Active','Trial','Expired','Lifetime'],datasets:[{data:[active,trial,expired,lifetime],backgroundColor:['rgba(46,204,113,0.8)','rgba(52,152,219,0.8)','rgba(192,57,43,0.7)','rgba(155,89,182,0.8)'],borderColor:['#06101E'],borderWidth:3,hoverOffset:6}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{color:'rgba(255,255,255,0.55)',padding:14,font:{size:11,family:'DM Sans'}}},tooltip:{callbacks:{label:ctx=>` ${ctx.label}: ${ctx.raw}`}}},cutout:'65%'}
+    });
+    const top=[...allCustomers].sort((a,b)=>b.students-a.students).slice(0,7);
+    if(barChartInst) barChartInst.destroy();
+    barChartInst = new Chart(document.getElementById('barChart'),{
+      type:'bar',
+      data:{labels:top.map(c=>c.email.length>14?c.email.substring(0,12)+'..':c.email),datasets:[{label:'Students',data:top.map(c=>c.students),backgroundColor:'rgba(201,150,12,0.7)',borderColor:'rgba(232,180,34,0.9)',borderWidth:1,borderRadius:5}]},
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{x:{ticks:{color:'rgba(255,255,255,0.38)',font:{size:10,family:'DM Sans'}},grid:{color:'rgba(255,255,255,0.04)'}},y:{ticks:{color:'rgba(255,255,255,0.38)',font:{size:10,family:'DM Sans'}},grid:{color:'rgba(255,255,255,0.05)'},beginAtZero:true}}}
+    });
+  }
+
+  function getBadge(s){return{active:'<span class="badge badge-active">● Active</span>',trial:'<span class="badge badge-trial">◎ Trial</span>',expired:'<span class="badge badge-expired">✕ Expired</span>',lifetime:'<span class="badge badge-lifetime">∞ Lifetime</span>'}[s]||'<span class="badge badge-expired">✕ Expired</span>';}
+
+  function renderRecent(){
+    const r=[...allCustomers].sort((a,b)=>new Date(b.joined)-new Date(a.joined)).slice(0,5);
+    document.getElementById('recentBody').innerHTML=r.length?r.map(c=>`<tr><td style="font-family:'DM Mono',monospace;font-size:0.77rem">${c.email}</td><td>${getBadge(c.status)}</td><td>${c.students}</td><td style="color:var(--muted)">${c.joined?new Date(c.joined).toLocaleDateString('en-GB'):'—'}</td></tr>`).join(''):'<tr><td colspan="4"><div class="empty-state">No customers yet</div></td></tr>';
+  }
+
+  function renderCustomersTable(customers){
+    document.getElementById('customersBody').innerHTML=customers.length?customers.map(c=>`<tr><td style="font-family:'DM Mono',monospace;font-size:0.77rem">${c.email}</td><td>${getBadge(c.status)}</td><td style="color:${c.daysLeft<5&&c.status!=='lifetime'?'#e74c3c':'var(--text)'}">${c.status==='lifetime'?'∞':c.daysLeft>0?c.daysLeft+' days':'—'}</td><td>${c.students}</td><td style="color:var(--muted)">${c.joined?new Date(c.joined).toLocaleDateString('en-GB'):'—'}</td></tr>`).join(''):'<tr><td colspan="5"><div class="empty-state">No customers found</div></td></tr>';
+  }
+
+  function filterCustomers(){
+    const q=document.getElementById('searchInput').value.toLowerCase();
+    renderCustomersTable(allCustomers.filter(c=>c.email.toLowerCase().includes(q)||c.id.toLowerCase().includes(q)));
+  }
+
+  // ── GENERATOR ──
+  let selectedPlan='M', lastCode='';
+  function setPlan(p){selectedPlan=p;['M','Y','L'].forEach(x=>document.getElementById('btn'+x).classList.remove('active'));document.getElementById('btn'+p).classList.add('active');}
+
+  async function generateCode(){
+    const userId=document.getElementById('genUserId').value.trim();
+    const issueDate=document.getElementById('genIssueDate').value;
+    const wa=document.getElementById('genWhatsapp').value.trim().replace(/\D/g,'');
+    const name=document.getElementById('genName').value.trim();
+    if(!userId){showToast('Enter customer User ID','error');return;}
+    if(!issueDate){showToast('Select an issue date','error');return;}
+    const btn=document.getElementById('genBtn');
+    btn.disabled=true;
+    document.getElementById('genLoading').style.display='block';
+    document.getElementById('genResult').style.display='none';
+    try{
+      const res=await fetch(`${SUPABASE_URL}/functions/v1/generate-code`,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({userId,planType:selectedPlan,issueDate,adminSecret:ADMIN_SECRET})});
+      const result=await res.json();
+      if(!result.code){showToast('Error generating code','error');return;}
+      lastCode=result.code;
+      document.getElementById('genCode').textContent=result.code;
+      document.getElementById('genResult').style.display='block';
+      const planLabels={M:'Monthly — 30 days',Y:'Yearly — 365 days',L:'Lifetime — never expires'};
+      const expiry=new Date(new Date(issueDate).getTime()+7*86400000);
+      document.getElementById('genMeta').innerHTML=`Plan: <strong style="color:var(--gold2)">${planLabels[selectedPlan]}</strong> · Expires ${expiry.toDateString()}`;
+      const planDesc=selectedPlan==='L'?'a lifetime access code':selectedPlan==='Y'?'a yearly subscription':'a monthly subscription (30 days)';
+      const msg=encodeURIComponent(`${name?'Hello '+name+'!':'Hello!'} Here is your Velune activation code:\n\n*${result.code}*\n\nThis gives you ${planDesc}.\nEnter it on the activation page.\n\nThank you! 🙏`);
+      const waBtn=document.getElementById('genWaBtn');
+      if(wa){waBtn.href=`https://wa.me/${wa}?text=${msg}`;waBtn.classList.remove('disabled');}
+      else{waBtn.href='#';waBtn.classList.add('disabled');}
+      saveGenHistory(result.code,userId,issueDate,name,wa,selectedPlan);
+      loadGenHistory();
+    }catch(err){showToast('Error: '+err.message,'error');}
+    finally{btn.disabled=false;document.getElementById('genLoading').style.display='none';}
+  }
+
+  function copyGenCode(){
+    navigator.clipboard.writeText(lastCode).then(()=>{
+      const btn=document.getElementById('genCopyBtn');
+      btn.classList.add('copied');btn.innerHTML='✓ Copied!';
+      setTimeout(()=>{btn.classList.remove('copied');btn.innerHTML='<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>Copy';},2500);
+    });
+  }
+
+  function saveGenHistory(code,userId,date,name,wa,plan){
+    const h=JSON.parse(localStorage.getItem('velune_gen_history')||'[]');
+    h.unshift({code,userId:userId.substring(0,8)+'...',date,name:name||null,wa:wa||null,plan:plan||'M',ts:Date.now()});
+    localStorage.setItem('velune_gen_history',JSON.stringify(h.slice(0,20)));
+  }
+
+  function loadGenHistory(){
+    const list=document.getElementById('genHistory');
+    const history=JSON.parse(localStorage.getItem('velune_gen_history')||'[]');
+    const planColors={M:'#E8B422',Y:'#3498db',L:'#c39bd3'},planNames={M:'Monthly',Y:'Yearly',L:'Lifetime'};
+    if(!history.length){list.innerHTML='<div class="empty-state">No codes generated yet</div>';return;}
+    list.innerHTML=history.map(h=>`
+      <div style="padding:11px 16px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;gap:10px">
+        <div style="min-width:0">
+          <div style="font-family:'DM Mono',monospace;font-size:0.76rem;color:${planColors[h.plan||'M']};overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${h.code}</div>
+          <div style="font-size:0.68rem;color:var(--muted);margin-top:2px"><span style="color:${planColors[h.plan||'M']};font-weight:700">${planNames[h.plan||'M']}</span>${h.name?' · '+h.name:''} · ${new Date(h.ts).toLocaleDateString()}</div>
+        </div>
+        <button style="background:rgba(201,150,12,0.1);border:1px solid rgba(201,150,12,0.2);color:var(--gold2);border-radius:7px;padding:5px 10px;font-size:0.7rem;font-weight:700;cursor:pointer;font-family:'DM Sans',sans-serif;flex-shrink:0" onclick="navigator.clipboard.writeText('${h.code}').then(()=>showToast('Copied!','success'))">Copy</button>
+      </div>`).join('');
+  }
+
+  function clearHistory(){if(confirm('Clear code history?')){localStorage.removeItem('velune_gen_history');loadGenHistory();}}
+
+  function showPage(name,el){
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+    document.getElementById('page-'+name).classList.add('active');
+    el.classList.add('active');
+    closeSidebar();
+  }
+
+  function showToast(msg,type='info'){
+    const c=document.getElementById('toastContainer');
+    const t=document.createElement('div');
+    t.className=`toast ${type}`;
+    t.innerHTML=`<span>${{success:'✓',error:'✕',info:'ℹ'}[type]||'ℹ'}</span> ${msg}`;
+    c.appendChild(t);
+    setTimeout(()=>{t.style.cssText='opacity:0;transform:translateX(40px);transition:all 0.3s';setTimeout(()=>t.remove(),300);},3500);
+  }
+</script>
+</body>
+</html>
